@@ -1,21 +1,26 @@
-import logo from "./logo.svg";
 import "./App.css";
 import api from "./services/api";
+import SpellItem from "./Spell";
 import { useEffect, useState } from "react";
 
 function App() {
 	const [spells, setSpells] = useState([]);
+	const [currentSpells, setCurrentSpells] = useState([]);
+	const [page, setPage] = useState(1);
+	const [lastSpell, setLastSpell] = useState();
 
 	useEffect(async () => {
 		try{
 			const response = await api.get("spells");
 			var {results} = response.data;
-
-			for (var i = 0; i < results.length; i++){
-				results[i].description = await (await api.get(results[i].url.substring(5))).data.desc;
+			var cSpells = [];
+			for (var i = 0; i < 25; i++){
+				results[i].description = (await api.get(results[i].url.substring(5))).data.desc;
+				cSpells[i] = results[i]
 			}
 
-			return setSpells(results);
+
+			return setSpells(results), setCurrentSpells(cSpells), setLastSpell(cSpells[cSpells.length - 1]);
 
 		} catch (err){
 			console.error("Requisição falhou! " + err);
@@ -24,11 +29,10 @@ function App() {
 
 	return (
 		<div className="App">
-			{spells.length > 0 ? (
-				spells.map((spell) => {
+			{currentSpells.length > 0 ? (
+				currentSpells.map((spell) => {
 					return (<div key={spell.name}>
-						<h1>{spell.name}</h1>
-						<a>{spell.description}</a>
+						<SpellItem spell={spell}/>
 					</div>);
 				})
 			) : (
